@@ -1,4 +1,4 @@
-import cheerio from 'cheerio';
+import { load as loadHtml } from 'cheerio';
 import path from 'path';
 import {
   downloadImage,
@@ -16,7 +16,7 @@ export default async function downloadMediaInHtml(html, targetDir, atomId) {
   if (!html) return html;
 
   // find if there are videos / images need to be downloaded
-  const $ = cheerio.load(html);
+  const $ = loadHtml(html);
   const videos = $('video source');
   const images = $('img');
 
@@ -57,8 +57,10 @@ export default async function downloadMediaInHtml(html, targetDir, atomId) {
       // since these src values may contain a link, but won't return a proper filename
       // manually create the file name
       let extension = null;
-
-      src && path.extname(src);
+      if (src) {
+        const ext = path.extname(src);
+        if (ext) extension = ext;
+      }
 
       let filename;
       if (!extension) {
@@ -69,7 +71,9 @@ export default async function downloadMediaInHtml(html, targetDir, atomId) {
       }
 
       const filenameImg = await downloadImage(src, pathMedia, filename);
-      html = html.replace(src, `media/${filenameImg}`);
+      if (filenameImg) {
+        html = html.replace(src, `media/${filenameImg}`);
+      }
     } //.for links
 
     return html;

@@ -4,6 +4,7 @@ import ora from 'ora';
 import path from 'path';
 import progress from 'progress-stream';
 import ytdl from 'ytdl-core';
+import { spawn } from 'child_process';
 import {
   downloadYoutubeSubtitles,
   filenamify,
@@ -42,7 +43,20 @@ export default function downloadYoutube(videoId, outputPath, prefix, title) {
       return;
     }
 
-    // start youtube download
+    // Prefer yt-dlp if available
+    try {
+      // eslint-disable-next-line no-use-before-define
+      const result = await downloadWithYtDlp(videoId, outputPath, prefix, title);
+      if (result) {
+        resolve(result);
+        return;
+      }
+    } catch (e) {
+      // fall back to ytdl-core
+      if (global.ytVerbose) logger.warn(`yt-dlp failed, falling back to ytdl-core: ${e.message || e}`);
+    }
+
+    // start youtube download with ytdl-core fallback
     const ytVideoQualities = ['22', '18', ''];
     for (let i = 0; i < ytVideoQualities.length; i += 1) {
       try {
@@ -124,9 +138,16 @@ function downloadYoutubeHelper(videoId, outputPath, prefix, title, format) {
     });
 
     const spinnerInfo = ora(`Getting Youtube video (id=${videoId}) information with quality="${format}"`).start();
+    const requestHeaders = {
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+      'accept-language': 'en-US,en;q=0.9',
+    };
     const video = ytdl(urlYoutube, {
       quality: targetItag || 'highest',
       filter: 'audioandvideo',
+      requestOptions: { headers: requestHeaders },
+      highWaterMark: 2 ** 25,
+      dlChunkSize: 0,
     });
 
     video.on('info', (info, chosenFormat) => {
@@ -193,6 +214,107 @@ function downloadYoutubeHelper(videoId, outputPath, prefix, title, format) {
     video.on('error', async (error) => {
       spinnerInfo.fail();
       reject(error);
+    });
+  });
+}
+
+function hasYtDlp() {
+  try {
+    const proc = spawn('yt-dlp', ['--version']);
+    return new Promise((resolve) => {
+      proc.on('error', () => resolve(false));
+      proc.on('close', code => resolve(code === 0));
+    });
+  } catch (e) {
+    return Promise.resolve(false);
+  }
+}
+
+async function downloadWithYtDlp(videoId, outputPath, prefix, title) {
+  const available = await hasYtDlp();
+  if (!available) return null;
+
+  const filenameBase = `${prefix}. ${filenamify(title || '')}-${videoId}`;
+  const filenameYoutube = `${filenameBase}.mp4`;
+  // tempPath not needed with yt-dlp; kept here for parity with ytdl-core approach
+  const savePath = path.join(outputPath, filenameYoutube);
+
+  // avoid re-downloading videos if it already exists
+  if (fs.existsSync(savePath)) {
+    const subtitles = findVideoLocalSubtitles(filenameBase, outputPath);
+    return { src: filenameYoutube, subtitles };
+  }
+
+  // Respect global delay between downloads
+  let timeGap;
+  let timeout = 0;
+  if (global.previousYoutubeTimestamp) {
+    timeGap = Date.now() - global.previousYoutubeTimestamp;
+    const delayYoutube = global.delayYoutube * 1000;
+    timeout = timeGap > 0 && timeGap <= delayYoutube ? delayYoutube - timeGap : 0;
+  }
+  if (timeout > 0) {
+    const spinnerDelay = ora(`Delaying Youtube download for further ${(timeout / 1000).toFixed(1)} seconds`).start();
+    await new Promise(r => setTimeout(() => { spinnerDelay.stop(); r(); }, timeout));
+  }
+
+  const spinner = ora(`Downloading Youtube via yt-dlp (id=${videoId})`).start();
+  await fs.ensureDir(outputPath);
+
+  const urlYoutube = `https://www.youtube.com/watch?v=${videoId}`;
+  // Prefer mp4 progressive or merge to mp4
+  const format = 'bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv+ba/b';
+  const args = [
+    '-f', format,
+    '--merge-output-format', 'mp4',
+    '--no-playlist',
+    '--no-continue',
+    '--no-part',
+    '-o', path.join(outputPath, `${filenameBase}.%(ext)s`),
+    urlYoutube,
+  ];
+
+  // Subtitles support
+  if (global.downloadYoutubeSubtitles) {
+    args.unshift('--convert-subs', 'vtt');
+    args.unshift('--sub-format', 'vtt');
+    args.unshift('--write-auto-sub');
+    args.unshift('--write-sub');
+  }
+
+  return new Promise((resolve, reject) => {
+    const proc = spawn('yt-dlp', args);
+    let stderr = '';
+    proc.stderr.on('data', (d) => { if (global.ytVerbose) process.stderr.write(d); stderr += d.toString(); });
+    proc.stdout.on('data', (d) => { if (global.ytVerbose) process.stdout.write(d); });
+    proc.on('error', (err) => { spinner.fail(); reject(err); });
+    proc.on('close', async (code) => {
+      if (code !== 0) {
+        spinner.fail();
+        reject(new Error(stderr.trim() || `yt-dlp exited with code ${code}`));
+        return;
+      }
+      try {
+        // yt-dlp writes directly to final file name (mp4)
+        if (!fs.existsSync(savePath)) {
+          // Some formats might have yielded mkv. Try to locate any output matching base name.
+          const entries = await fs.readdir(outputPath);
+          const match = entries.find(n => n.startsWith(`${filenameBase}.`));
+          if (match) await fs.rename(path.join(outputPath, match), savePath);
+        }
+        spinner.succeed();
+        let subtitles = [];
+        if (global.downloadYoutubeSubtitles) {
+          try {
+            subtitles = findVideoLocalSubtitles(filenameBase, outputPath);
+          } catch (e) { /* ignore */ }
+        }
+        global.previousYoutubeTimestamp = Date.now();
+        resolve({ src: filenameYoutube, subtitles });
+      } catch (e) {
+        spinner.fail();
+        reject(e);
+      }
     });
   });
 }

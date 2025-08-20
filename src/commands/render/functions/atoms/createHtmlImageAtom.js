@@ -18,14 +18,16 @@ import { loadTemplate } from '../templates';
  */
 export default async function createHtmlImageAtom(atom, outputPath) {
   let { caption } = atom;
-  const { url, non_google_url } = atom;
+  const { url } = atom;
+  // Support legacy JSONs with non_google_url if present; otherwise rely on url
+  const nonGoogle = atom.non_google_url; // may be undefined in new schema
   let imageUrl = null;
   const isUrlvalid = validUrl.isUri(url);
-  const isNonGoogleUrlValid = validUrl.isUri(non_google_url);
+  const isNonGoogleUrlValid = validUrl.isUri(nonGoogle);
   if (isUrlvalid) {
     imageUrl = url;
   } else if (isNonGoogleUrlValid) {
-    imageUrl = non_google_url;
+    imageUrl = nonGoogle;
   }
 
   // create directory for image assets
@@ -33,7 +35,8 @@ export default async function createHtmlImageAtom(atom, outputPath) {
 
   // if link doesn't contain image extension, create a custom file name
   let filename;
-  if (!path.extname(url)) {
+  const extCandidate = imageUrl ? path.extname(imageUrl) : '';
+  if (!extCandidate) {
     filename = `${atom.id}.gif`;
   }
 
@@ -47,10 +50,8 @@ export default async function createHtmlImageAtom(atom, outputPath) {
 
   let file = '';
   if (filenameImg === null) {
-    if (isUrlvalid) {
-      file = url;
-    } else if (isNonGoogleUrlValid) {
-      file = non_google_url;
+    if (imageUrl) {
+      file = imageUrl;
     }
   } else {
     file = `img/${filenameImg}`;
