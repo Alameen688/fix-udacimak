@@ -69,7 +69,7 @@ program
   .option('-t, --targetdir <targetdir>', '(Optional) Target directory to save rendered course contents')
   .option('-d, --delay-youtube <number>', '(Optional) Add delay in seconds between Youtube downloads')
   .option('-s, --subtitles', '(Optional) Download Youtube video subtitles')
-  .option('-v, --verbose', '(Optional) Force youtube-dl to log debugging information')
+  .option('-v, --verbose', '(Optional) Verbose YouTube download logging')
   .option('--userquizanswer', '(Optional) Force rendering user\'s Programming Question code answer')
   .action(async (path, options) => {
     options.delayYoutube && validateInt(options.delayYoutube);
@@ -102,7 +102,7 @@ program
   .option('-t, --targetdir <targetdir>', '(Optional) Target directory to save rendered course contents')
   .option('-d, --delay-youtube <number>', '(Optional) Add delay in seconds between Youtube downloads')
   .option('-s, --subtitles', '(Optional) Download Youtube video subtitles')
-  .option('-v, --verbose', '(Optional) Force youtube-dl to log debugging information')
+  .option('-v, --verbose', '(Optional) Verbose YouTube download logging')
   .option('--userquizanswer', '(Optional) Force rendering user\'s Programming Question code answer')
   .action(async (path, options) => {
     options.delayYoutube && validateInt(options.delayYoutube);

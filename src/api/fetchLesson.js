@@ -1,18 +1,150 @@
-import {
-  API_ENDPOINTS_UDACITY_GRAPHQL,
-} from '../config';
+import { API_ENDPOINTS_UDACITY_GRAPHQL } from '../config';
 import { fetchApiUdacityGraphql } from '.';
-
 
 /**
  * Fetch JSON data of a lesson from Udacity API
- * @param {string} lessonInfo id of course or Nanodegree
+ * @param {object} lessonInfo id of course or Nanodegree (expects id, rootKey, locale)
  * @param {string} udacityAuthToken Udacity authentication token
  */
 export default function fetchCourse(lessonInfo, udacityAuthToken) {
-  const { id, locale, rootKey } = lessonInfo;
+  const { id, rootKey } = lessonInfo;
 
-  const queryGraphql = `{\"query\":\"\\n    query LessonQuery {\\n      lesson(id: ${id}, root_key: \\\"${rootKey}\\\") {\\n        \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n        version\\n        locale\\n        summary\\n        lesson_type\\n        display_workspace_project_only\\n        \\n  resources {\\n    files {\\n      name\\n      uri\\n    }\\n    google_plus_link\\n    career_resource_center_link\\n    coaching_appointments_link\\n    office_hours_link\\n    aws_provisioning_link\\n  }\\n\\n        project {\\n          \\n  key\\n  version\\n  locale\\n  duration\\n  semantic_type\\n  title\\n  description\\n  is_public\\n  summary\\n  forum_path\\n  rubric_id\\n  terminal_project_id\\n  \\n  resources {\\n    files {\\n      name\\n      uri\\n    }\\n    google_plus_link\\n    career_resource_center_link\\n    coaching_appointments_link\\n    office_hours_link\\n    aws_provisioning_link\\n  }\\n\\n  \\n  image {\\n    url\\n    width\\n    height\\n  }\\n\\n\\n        }\\n        lab {\\n          \\n  id\\n  key\\n  version\\n  locale\\n  estimated_session_duration\\n  duration\\n  is_public\\n  semantic_type\\n  title\\n  evaluation_objective\\n  partners\\n  overview {\\n    title\\n    summary\\n    key_takeaways\\n    video {\\n      topher_id\\n      youtube_id\\n    }\\n  }\\n  details {\\n    text\\n  }\\n  review_video {\\n    topher_id\\n    youtube_id\\n  }\\n  result {\\n    state\\n    skill_confidence_rating_after\\n    skill_confidence_rating_before\\n  }\\n  workspace {\\n    \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n    workspace_id\\n    pool_id\\n    view_id\\n    configuration\\n    starter_files\\n  }\\n\\n        }\\n        concepts {\\n          \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n          \\n  user_state {\\n    node_key\\n    completed_at\\n    last_viewed_at\\n    unstructured\\n  }\\n\\n          \\n  resources {\\n    files {\\n      name\\n      uri\\n    }\\n    google_plus_link\\n    career_resource_center_link\\n    coaching_appointments_link\\n    office_hours_link\\n    aws_provisioning_link\\n  }\\n\\n          atoms {\\n            ...on EmbeddedFrameAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              external_uri\\n              instructor_notes\\n            }\\n            ...on TextAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              text\\n              instructor_notes\\n            }\\n            ...on TaskListAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              instructor_notes\\n              \\n  user_state {\\n    node_key\\n    completed_at\\n    last_viewed_at\\n    unstructured\\n  }\\n\\n              tasks\\n              positive_feedback\\n              video_feedback {\\n                youtube_id\\n                china_cdn_id\\n              }\\n              description\\n            }\\n            ...on ImageAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              url\\n              non_google_url\\n              caption\\n              alt\\n              width\\n              height\\n              instructor_notes\\n            }\\n            ...on VideoAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              instructor_notes\\n              video {\\n                youtube_id\\n                china_cdn_id\\n              }\\n            }\\n            ...on ReflectAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              instructor_notes\\n              \\n  user_state {\\n    node_key\\n    completed_at\\n    last_viewed_at\\n    unstructured\\n  }\\n\\n              question {\\n                \\n  ...on TextQuestion {\\n    title\\n    semantic_type\\n    evaluation_id\\n    text\\n  }\\n\\n              }\\n              \\n  answer {\\n    text\\n    video {\\n      youtube_id\\n      china_cdn_id\\n    }\\n  }\\n\\n            }\\n            ...on RadioQuizAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              instructor_notes\\n              \\n  user_state {\\n    node_key\\n    completed_at\\n    last_viewed_at\\n    unstructured\\n  }\\n\\n              question {\\n                prompt\\n                answers {\\n                  id\\n                  text\\n                  is_correct\\n                }\\n              }\\n            }\\n            ...on CheckboxQuizAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              instructor_notes\\n              \\n  user_state {\\n    node_key\\n    completed_at\\n    last_viewed_at\\n    unstructured\\n  }\\n\\n              question {\\n                prompt\\n                answers {\\n                  id\\n                  text\\n                  is_correct\\n                }\\n              }\\n            }\\n\\n            ...on MatchingQuizAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              instructor_notes\\n              \\n  user_state {\\n    node_key\\n    completed_at\\n    last_viewed_at\\n    unstructured\\n  }\\n\\n              question {\\n                complex_prompt {\\n                  text\\n                }\\n                concepts_label\\n                answers_label\\n                concepts {\\n                  text\\n                  correct_answer {\\n                    id\\n                    text\\n                  }\\n                }\\n                answers {\\n                  id\\n                  text\\n                }\\n              }\\n            }\\n            ...on ValidatedQuizAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              instructor_notes\\n              \\n  user_state {\\n    node_key\\n    completed_at\\n    last_viewed_at\\n    unstructured\\n  }\\n\\n              question {\\n                prompt\\n                matchers {\\n                  ...on RegexMatcher {\\n                    expression\\n                  }\\n                }\\n              }\\n            }\\n            ...on QuizAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              instructor_notes\\n              \\n  user_state {\\n    node_key\\n    completed_at\\n    last_viewed_at\\n    unstructured\\n  }\\n\\n              instruction {\\n                video {\\n                  youtube_id\\n                  china_cdn_id\\n                }\\n                text\\n              }\\n              question {\\n                ...on ImageFormQuestion {\\n                  title\\n                  alt_text\\n                  background_image\\n                  non_google_background_image\\n                  semantic_type\\n                  evaluation_id\\n                  widgets {\\n                    group\\n                    initial_value\\n                    label\\n                    marker\\n                    model\\n                    is_text_area\\n                    tabindex\\n                    placement {\\n                      height\\n                      width\\n                      x\\n                      y\\n                    }\\n                  }\\n                }\\n                ...on ProgrammingQuestion {\\n                  title\\n                  semantic_type\\n                  evaluation_id\\n                  initial_code_files {\\n                    text\\n                    name\\n                  }\\n                }\\n                ...on CodeGradedQuestion {\\n                  title\\n                  prompt\\n                  semantic_type\\n                  evaluation_id\\n                }\\n                ...on IFrameQuestion {\\n                  title\\n                  semantic_type\\n                  evaluation_id\\n                  initial_code_files {\\n                    text\\n                    name\\n                  }\\n                  external_iframe_uri\\n                }\\n                \\n  ...on TextQuestion {\\n    title\\n    semantic_type\\n    evaluation_id\\n    text\\n  }\\n\\n              }\\n              \\n  answer {\\n    text\\n    video {\\n      youtube_id\\n      china_cdn_id\\n    }\\n  }\\n\\n            }\\n            ...on WorkspaceAtom {\\n              \\n  id\\n  key\\n  title\\n  semantic_type\\n  is_public\\n\\n              workspace_id\\n              pool_id\\n              view_id\\n              gpu_capable\\n              configuration\\n              starter_files\\n            }\\n          }\\n        }\\n      }\\n    }\\n  \",\"variables\":null,\"${locale}\":\"en-us\"}`;
+  const query = `
+    query LessonQuery {
+      lesson(id: ${id}, root_key: "${rootKey}") {
+        id
+        key
+        title
+        semantic_type
+        is_public
+        version
+        locale
+        summary
+        display_workspace_project_only
+        resources { files { name uri } }
+        project {
+          key
+          version
+          locale
+          duration
+          semantic_type
+          title
+          description
+          is_public
+          summary
+          forum_path
+          rubric_id
+          terminal_project_id
+          resources { files { name uri } }
+          image { url width height }
+        }
+        lab {
+          id
+          key
+          version
+          locale
+          estimated_session_duration
+          duration
+          is_public
+          semantic_type
+          title
+          evaluation_objective
+          partners
+          overview { title summary key_takeaways video { topher_id youtube_id } }
+          details { text }
+          review_video { topher_id youtube_id }
+          result { state skill_confidence_rating_after skill_confidence_rating_before }
+          workspace {
+            id
+            key
+            title
+            semantic_type
+            is_public
+            workspace_id
+            pool_id
+            view_id
+            configuration
+          }
+        }
+        concepts {
+          id
+          key
+          title
+          semantic_type
+          is_public
+          user_state { node_key completed_at last_viewed_at unstructured }
+          resources { files { name uri } }
+          atoms {
+            ...on EmbeddedFrameAtom { id key title semantic_type is_public external_uri instructor_notes }
+            ...on TextAtom { id key title semantic_type is_public text instructor_notes }
+            ...on TaskListAtom {
+              id key title semantic_type is_public instructor_notes
+              user_state { node_key completed_at last_viewed_at unstructured }
+              tasks
+              positive_feedback
+              video_feedback { youtube_id china_cdn_id }
+              description
+            }
+            ...on ImageAtom { id key title semantic_type is_public url caption alt width height instructor_notes }
+            ...on VideoAtom { id key title semantic_type is_public instructor_notes video { youtube_id china_cdn_id } }
+            ...on ReflectAtom {
+              id key title semantic_type is_public instructor_notes
+              user_state { node_key completed_at last_viewed_at unstructured }
+              question { ...on TextQuestion { title semantic_type evaluation_id text } }
+              answer { text video { youtube_id china_cdn_id } }
+            }
+            ...on RadioQuizAtom {
+              id key title semantic_type is_public instructor_notes
+              user_state { node_key completed_at last_viewed_at unstructured }
+              question { prompt answers { id text is_correct } }
+            }
+            ...on CheckboxQuizAtom {
+              id key title semantic_type is_public instructor_notes
+              user_state { node_key completed_at last_viewed_at unstructured }
+              question { prompt answers { id text is_correct } }
+            }
+            ...on MatchingQuizAtom {
+              id key title semantic_type is_public instructor_notes
+              user_state { node_key completed_at last_viewed_at unstructured }
+              question {
+                complex_prompt { text }
+                concepts_label
+                answers_label
+                concepts { text correct_answer { id text } }
+                answers { id text }
+              }
+            }
+            ...on ValidatedQuizAtom {
+              id key title semantic_type is_public instructor_notes
+              user_state { node_key completed_at last_viewed_at unstructured }
+              question { prompt matchers { ...on RegexMatcher { expression } } }
+            }
+            ...on QuizAtom {
+              id key title semantic_type is_public instructor_notes
+              user_state { node_key completed_at last_viewed_at unstructured }
+              instruction { video { youtube_id china_cdn_id } text }
+              question {
+                ...on ImageFormQuestion {
+                  title alt_text background_image semantic_type evaluation_id
+                  widgets { group initial_value label marker model is_text_area tabindex placement { height width x y } }
+                }
+                ...on ProgrammingQuestion { title semantic_type evaluation_id initial_code_files { text name } }
+                ...on CodeGradedQuestion { title prompt semantic_type evaluation_id }
+                ...on IFrameQuestion { title semantic_type evaluation_id initial_code_files { text name } external_iframe_uri }
+                ...on TextQuestion { title semantic_type evaluation_id text }
+              }
+              answer { text video { youtube_id china_cdn_id } }
+            }
+            ...on WorkspaceAtom {
+              id key title semantic_type is_public
+              workspace_id pool_id view_id gpu_capable configuration
+            }
+          }
+        }
+      }
+    }
+  `;
 
+  const queryGraphql = JSON.stringify({ query, variables: null, locale: 'en-us' });
   return fetchApiUdacityGraphql(API_ENDPOINTS_UDACITY_GRAPHQL, queryGraphql, udacityAuthToken);
 }

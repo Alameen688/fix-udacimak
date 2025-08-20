@@ -1,6 +1,13 @@
 {
     "parser": "babel-eslint",
     "extends": "airbnb/base",
+    "env": {
+      "node": true
+    },
+    "globals": {
+      "fetch": "readonly",
+      "AbortController": "readonly"
+    },
     "rules": {
       "func-names": 0,
       "import/no-cycle": 0,

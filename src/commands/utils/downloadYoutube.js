@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import ora from 'ora';
 import path from 'path';
 import progress from 'progress-stream';
-import youtubedl from 'youtube-dl';
+import ytdl from 'ytdl-core';
 import {
   downloadYoutubeSubtitles,
   filenamify,
@@ -96,8 +96,9 @@ function downloadYoutubeHelper(videoId, outputPath, prefix, title, format) {
     let timeGap;
     let timeout = 0;
 
-    const argsYoutube = format ? [`--format=${format}`] : [];
-    global.ytVerbose && argsYoutube.push('--verbose');
+    // select target itag (e.g., 22 = 720p mp4, 18 = 360p mp4),
+    // fallback to highest progressive audio+video
+    const targetItag = format && `${format}`.trim() ? `${format}`.trim() : null;
 
     // calculate amount of time to wait before starting this next Youtube download
     if (global.previousYoutubeTimestamp) {
@@ -123,24 +124,31 @@ function downloadYoutubeHelper(videoId, outputPath, prefix, title, format) {
     });
 
     const spinnerInfo = ora(`Getting Youtube video (id=${videoId}) information with quality="${format}"`).start();
-    const video = youtubedl(urlYoutube, argsYoutube);
+    const video = ytdl(urlYoutube, {
+      quality: targetItag || 'highest',
+      filter: 'audioandvideo',
+    });
 
-    video.on('info', (info) => {
+    video.on('info', (info, chosenFormat) => {
       spinnerInfo.succeed();
       // get video name
-      const fileSize = info.size;
+      const fileSize = parseInt((chosenFormat && chosenFormat.contentLength) || 0, 10) || 0;
       // create a new progress bar instance
       const progressBar = new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic);
-      progressBar.start(fileSize, 0);
+      if (fileSize > 0) {
+        progressBar.start(fileSize, 0);
+      }
 
 
       const progressStream = progress({
-        length: fileSize,
+        length: fileSize || undefined,
         time: 20,
       });
-      progressStream.on('progress', (progressData) => {
-        progressBar.update(progressData.transferred);
-      });
+      if (fileSize > 0) {
+        progressStream.on('progress', (progressData) => {
+          progressBar.update(progressData.transferred);
+        });
+      }
 
       // Write video to temporary file first. If download finishes, rename it
       // to proper file name later. This is to avoid the issue when the terminal
@@ -158,8 +166,10 @@ function downloadYoutubeHelper(videoId, outputPath, prefix, title, format) {
           reject(errorRename);
         }
 
-        progressBar.update(fileSize);
-        progressBar.stop();
+        if (fileSize > 0) {
+          progressBar.update(fileSize);
+          progressBar.stop();
+        }
         logger.info(`Downloaded video ${filenameYoutube} with quality="${format}"`);
 
         let subtitles = [];
