@@ -99,7 +99,11 @@ export default function fetchNanodegree(ndInfo, udacityAuthToken) {
               is_project_lesson
               display_workspace_project_only
               image { url width height }
-              video { youtube_id china_cdn_id }
+              video {
+                topher_id youtube_id china_cdn_id duration
+                transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+                subtitles { language_code url }
+              }
               lab {
                 id
                 key
@@ -112,9 +116,20 @@ export default function fetchNanodegree(ndInfo, udacityAuthToken) {
                 title
                 evaluation_objective
                 partners
-                overview { title summary key_takeaways video { topher_id youtube_id } }
+                overview {
+                  title summary key_takeaways
+                  video {
+                    topher_id youtube_id duration
+                    transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+                    subtitles { language_code url }
+                  }
+                }
                 details { text }
-                review_video { topher_id youtube_id }
+                review_video {
+                  topher_id youtube_id duration
+                  transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+                  subtitles { language_code url }
+                }
                 result { state skill_confidence_rating_after skill_confidence_rating_before }
                 workspace {
                   id

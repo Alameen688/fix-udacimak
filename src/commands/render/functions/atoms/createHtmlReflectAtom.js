@@ -24,9 +24,9 @@ export default async function createHtmlReflectAtom(atom, targetDir, prefix) {
     questionText = '<p>Unknown question type. Please contact the developer to make it compatible with this atom type!</p>';
   }
 
-  // download answer video if available
-  const youtubeId = atom.answer.video ? atom.answer.video.youtube_id : '';
-  const promiseHtmlVideo = createHtmlVideo(youtubeId, targetDir, prefix, atom.title);
+  // download answer video if available — pass the full Video object so the
+  // downloader can use Topher CDN transcodings instead of YouTube
+  const promiseHtmlVideo = createHtmlVideo(atom.answer.video, targetDir, prefix, atom.title);
   const promiseLoadTemplate = loadTemplate('atom.reflect');
 
   const [video, html] = await Promise.all([promiseHtmlVideo, promiseLoadTemplate]);

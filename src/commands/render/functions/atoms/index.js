@@ -1,3 +1,4 @@
+export { default as createHtmlAudioSlidesAtom } from './createHtmlAudioSlidesAtom';
 export { default as createHtmlImageAtom } from './createHtmlImageAtom';
 export { default as createHtmlReflectAtom } from './createHtmlReflectAtom';
 export { default as createHtmlTaskListAtom } from './createHtmlTaskListAtom';

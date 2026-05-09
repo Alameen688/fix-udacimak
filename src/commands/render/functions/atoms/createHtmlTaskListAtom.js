@@ -29,9 +29,9 @@ export default async function createHtmlTaskListAtom(atom, targetDir, prefix) {
     });
   }
 
-  // download feedback video if available
-  const youtubeId = atom.video_feedback ? atom.video_feedback.youtube_id : '';
-  const promiseHtmlVideo = createHtmlVideo(youtubeId, targetDir, prefix, atom.title);
+  // download feedback video if available — full Video object so we can
+  // prefer Topher CDN transcodings over YouTube
+  const promiseHtmlVideo = createHtmlVideo(atom.video_feedback, targetDir, prefix, atom.title);
   const promiseLoadTemplate = loadTemplate('atom.taskList');
 
   const [video, html] = await Promise.all([promiseHtmlVideo, promiseLoadTemplate]);

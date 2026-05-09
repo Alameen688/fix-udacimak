@@ -1,0 +1,35 @@
+<div class="audio-slides-atom">
+  {{#if audioSrc}}
+  <figure>
+    <audio controls preload="metadata" src="{{audioSrc}}"></audio>
+    {{#if audioDuration}}
+    <figcaption class="figure-caption">Audio narration · {{audioDuration}}s</figcaption>
+    {{/if}}
+  </figure>
+  {{/if}}
+
+  {{#if slides.length}}
+  <ol class="audio-slides-list">
+    {{#each slides}}
+    <li class="audio-slide">
+      {{#if this.title}}<h4>{{{this.title}}}</h4>{{/if}}
+      {{#if this.timestamp}}<p class="text-muted small">{{this.timestamp}}</p>{{/if}}
+      {{#if this.content}}<div class="audio-slide-content">{{{this.content}}}</div>{{/if}}
+      {{#if this.transcript}}
+      <details>
+        <summary>Transcript</summary>
+        <p>{{{this.transcript}}}</p>
+      </details>
+      {{/if}}
+    </li>
+    {{/each}}
+  </ol>
+  {{/if}}
+
+  {{#if script}}
+  <details class="audio-slides-script">
+    <summary>Full script</summary>
+    <div>{{{script}}}</div>
+  </details>
+  {{/if}}
+</div>

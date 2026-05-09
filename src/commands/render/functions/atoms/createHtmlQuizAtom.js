@@ -25,10 +25,10 @@ export default async function createHtmlQuizAtom(atom, targetDir, prefix) {
     let promiseQuizQuestion;
     let promiseQuizUserAnswer;
 
-    // download instruction video if available
-    const youtubeIdQuestion = (atom.instruction && atom.instruction.video)
-      ? atom.instruction.video.youtube_id : '';
-    const videoQuestion = await createHtmlVideo(youtubeIdQuestion,
+    // download instruction video if available — full Video object so the
+    // downloader can prefer Topher CDN transcodings over YouTube
+    const instructionVideo = (atom.instruction && atom.instruction.video) || null;
+    const videoQuestion = await createHtmlVideo(instructionVideo,
       targetDir, prefix, atom.title);
 
     // process different semantic types of QuizAtom
@@ -47,10 +47,9 @@ export default async function createHtmlQuizAtom(atom, targetDir, prefix) {
     const htmlQuiz = await promiseQuizQuestion;
     const htmlQuizUserAnswer = await promiseQuizUserAnswer;
 
-    // all other promises
-    const youtubeIdAnswer = (atom.answer && atom.answer.video)
-      ? atom.answer.video.youtube_id : '';
-    const promiseDownloadYoutubeAnswer = createHtmlVideo(youtubeIdAnswer,
+    // all other promises — answer video also passes full Video object
+    const answerVideo = (atom.answer && atom.answer.video) || null;
+    const promiseDownloadYoutubeAnswer = createHtmlVideo(answerVideo,
       targetDir, prefix, atom.title);
     const promiseLoadTemplate = loadTemplate('atom.quiz');
 

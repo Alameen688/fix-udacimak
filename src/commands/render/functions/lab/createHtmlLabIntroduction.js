@@ -35,9 +35,11 @@ export default async function createHtmlLabIntroduction(overview, labTitle, targ
     keyTakeaways[i] = await createHtmlText(keyTakeaways[i], targetDir, mediaFileLabel);
   }
 
+  // Pass the full Video object so the downloader can prefer Topher CDN
+  // transcodings over YouTube
   let htmlVideo;
-  if (video && video.youtube_id) {
-    htmlVideo = await createHtmlVideo(video.youtube_id, targetDir, '', labTitle);
+  if (video && (video.transcodings || video.youtube_id)) {
+    htmlVideo = await createHtmlVideo(video, targetDir, '', labTitle);
   }
 
   if (!title && !summary && (!keyTakeaways || !keyTakeaways.length) && !htmlVideo) {

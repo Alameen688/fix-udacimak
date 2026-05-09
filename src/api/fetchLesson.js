@@ -50,9 +50,20 @@ export default function fetchCourse(lessonInfo, udacityAuthToken) {
           title
           evaluation_objective
           partners
-          overview { title summary key_takeaways video { topher_id youtube_id } }
+          overview {
+            title summary key_takeaways
+            video {
+              topher_id youtube_id duration
+              transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+              subtitles { language_code url }
+            }
+          }
           details { text }
-          review_video { topher_id youtube_id }
+          review_video {
+            topher_id youtube_id duration
+            transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+            subtitles { language_code url }
+          }
           result { state skill_confidence_rating_after skill_confidence_rating_before }
           workspace {
             id
@@ -82,16 +93,39 @@ export default function fetchCourse(lessonInfo, udacityAuthToken) {
               user_state { node_key completed_at last_viewed_at unstructured }
               tasks
               positive_feedback
-              video_feedback { youtube_id china_cdn_id }
+              video_feedback {
+                topher_id youtube_id china_cdn_id duration
+                transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+                subtitles { language_code url }
+              }
               description
             }
             ...on ImageAtom { id key title semantic_type is_public url caption alt width height instructor_notes }
-            ...on VideoAtom { id key title semantic_type is_public instructor_notes video { youtube_id china_cdn_id } }
+            ...on AudioSlidesAtom {
+              id key title semantic_type is_public instructor_notes script
+              audio { topher_id s3_url duration vtt_url }
+              slides { id title content transcript voice_script start_time_seconds end_time_seconds }
+            }
+            ...on VideoAtom {
+              id key title semantic_type is_public instructor_notes
+              video {
+                topher_id youtube_id china_cdn_id duration
+                transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+                subtitles { language_code url }
+              }
+            }
             ...on ReflectAtom {
               id key title semantic_type is_public instructor_notes
               user_state { node_key completed_at last_viewed_at unstructured }
               question { ...on TextQuestion { title semantic_type evaluation_id text } }
-              answer { text video { youtube_id china_cdn_id } }
+              answer {
+                text
+                video {
+                  topher_id youtube_id china_cdn_id duration
+                  transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+                  subtitles { language_code url }
+                }
+              }
             }
             ...on RadioQuizAtom {
               id key title semantic_type is_public instructor_notes
@@ -122,7 +156,14 @@ export default function fetchCourse(lessonInfo, udacityAuthToken) {
             ...on QuizAtom {
               id key title semantic_type is_public instructor_notes
               user_state { node_key completed_at last_viewed_at unstructured }
-              instruction { video { youtube_id china_cdn_id } text }
+              instruction {
+                text
+                video {
+                  topher_id youtube_id china_cdn_id duration
+                  transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+                  subtitles { language_code url }
+                }
+              }
               question {
                 ...on ImageFormQuestion {
                   title alt_text background_image semantic_type evaluation_id
@@ -133,7 +174,14 @@ export default function fetchCourse(lessonInfo, udacityAuthToken) {
                 ...on IFrameQuestion { title semantic_type evaluation_id initial_code_files { text name } external_iframe_uri }
                 ...on TextQuestion { title semantic_type evaluation_id text }
               }
-              answer { text video { youtube_id china_cdn_id } }
+              answer {
+                text
+                video {
+                  topher_id youtube_id china_cdn_id duration
+                  transcodings { uri_480p_mp4 uri_720p_mp4 uri_hls }
+                  subtitles { language_code url }
+                }
+              }
             }
             ...on WorkspaceAtom {
               id key title semantic_type is_public

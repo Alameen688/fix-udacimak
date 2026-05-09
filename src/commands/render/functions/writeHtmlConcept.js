@@ -1,6 +1,7 @@
 import Handlebars from 'handlebars';
 import path from 'path';
 import {
+  createHtmlAudioSlidesAtom,
   createHtmlImageAtom,
   createHtmlTaskListAtom,
   createHtmlTextAtom,
@@ -50,7 +51,9 @@ export default async function writeHtmlConcept(concept, nextConcept, htmlSidebar
       const semanticType = atom.semantic_type;
       const instructorNote = await createHtmlText(atom.instructor_notes, targetDir, `${atom.id}-instructor-note`);
 
-      if (semanticType === 'ImageAtom') {
+      if (semanticType === 'AudioSlidesAtom') {
+        promiseAtom = createHtmlAudioSlidesAtom(atom, targetDir, prefix);
+      } else if (semanticType === 'ImageAtom') {
         promiseAtom = createHtmlImageAtom(atom, targetDir);
       } else if (semanticType === 'TaskListAtom') {
         promiseAtom = createHtmlTaskListAtom(atom, targetDir, prefix);

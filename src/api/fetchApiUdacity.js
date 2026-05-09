@@ -17,7 +17,7 @@ export default async function fetchApiUdacity(url, udacityAuthToken = '') {
     Origin: 'https://review.udacity.com',
     Referer: 'https://review.udacity.com',
     Connection: 'keep-alive',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
   };
 
   const res = await fetch(url, { method: 'GET', headers });

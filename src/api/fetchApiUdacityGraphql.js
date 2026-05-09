@@ -19,7 +19,7 @@ export default async function fetchApiUdacityGraphql(url, queryGraphql, udacityA
     Origin: 'https://learn.udacity.com',
     Referer: 'https://learn.udacity.com/me',
     Connection: 'keep-alive',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
   };
 
   const res = await fetch(url, {

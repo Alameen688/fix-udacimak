@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import Handlebars from 'handlebars';
 import validUrl from 'valid-url';
 import path from 'path';
@@ -11,7 +10,10 @@ import { loadTemplate } from '../templates';
 
 
 /**
- * Create HTML content for ImageAtom
+ * Create HTML content for ImageAtom.
+ * (Note: `non_google_url` was removed from the schema in 2024; we only use
+ * the canonical `url` field now.)
+ *
  * @param {object} atom atom json
  * @param {string} outputPath path to save the assets folder for images
  * @returns {string} HTML content
@@ -19,16 +21,7 @@ import { loadTemplate } from '../templates';
 export default async function createHtmlImageAtom(atom, outputPath) {
   let { caption } = atom;
   const { url } = atom;
-  // Support legacy JSONs with non_google_url if present; otherwise rely on url
-  const nonGoogle = atom.non_google_url; // may be undefined in new schema
-  let imageUrl = null;
-  const isUrlvalid = validUrl.isUri(url);
-  const isNonGoogleUrlValid = validUrl.isUri(nonGoogle);
-  if (isUrlvalid) {
-    imageUrl = url;
-  } else if (isNonGoogleUrlValid) {
-    imageUrl = nonGoogle;
-  }
+  const imageUrl = validUrl.isUri(url) ? url : null;
 
   // create directory for image assets
   const pathImg = makeDir(outputPath, 'img');

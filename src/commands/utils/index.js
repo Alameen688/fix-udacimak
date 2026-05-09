@@ -3,6 +3,7 @@ export { default as config } from './config';
 export { default as deleteFilesInFolder } from './deleteFilesInFolder';
 export { default as downloadMediaInHtml } from './downloadMediaInHtml';
 export { default as downloadImage } from './downloadImage';
+export { default as downloadVideo } from './downloadVideo';
 export { default as downloadYoutube } from './downloadYoutube';
 export { default as downloadYoutubeSubtitles } from './downloadYoutubeSubtitles';
 export { default as fetchPackageInfo } from './fetchPackageInfo';
