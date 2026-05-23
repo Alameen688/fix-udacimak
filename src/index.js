@@ -70,9 +70,11 @@ program
   .option('-d, --delay-youtube <number>', '(Optional) Add delay in seconds between Youtube downloads')
   .option('-s, --subtitles', '(Optional) Download Youtube video subtitles')
   .option('-v, --verbose', '(Optional) Verbose YouTube download logging')
+  .option('-q, --quality <height>', '(Optional) Max video height for Udacity CDN videos (e.g. 1080). Default uses 720p mp4; higher values use the HLS playlist via yt-dlp.')
   .option('--userquizanswer', '(Optional) Force rendering user\'s Programming Question code answer')
   .action(async (path, options) => {
     options.delayYoutube && validateInt(options.delayYoutube);
+    options.quality && validateInt(options.quality);
 
     await preCli();
 
@@ -81,6 +83,7 @@ program
     const targetdir = options.targetdir || process.cwd();
     global.delayYoutube = options.delayYoutube || 0;
     global.ytVerbose = options.verbose;
+    global.maxVideoHeight = options.quality ? parseInt(options.quality, 10) : null;
     global.optRenderUserQuizAnswer = options.userquizanswer;
 
     render(path, targetdir);
@@ -103,9 +106,11 @@ program
   .option('-d, --delay-youtube <number>', '(Optional) Add delay in seconds between Youtube downloads')
   .option('-s, --subtitles', '(Optional) Download Youtube video subtitles')
   .option('-v, --verbose', '(Optional) Verbose YouTube download logging')
+  .option('-q, --quality <height>', '(Optional) Max video height for Udacity CDN videos (e.g. 1080). Default uses 720p mp4; higher values use the HLS playlist via yt-dlp.')
   .option('--userquizanswer', '(Optional) Force rendering user\'s Programming Question code answer')
   .action(async (path, options) => {
     options.delayYoutube && validateInt(options.delayYoutube);
+    options.quality && validateInt(options.quality);
 
     await preCli();
 
@@ -114,6 +119,7 @@ program
     const targetdir = options.targetdir || process.cwd();
     global.delayYoutube = options.delayYoutube || 0;
     global.ytVerbose = options.verbose;
+    global.maxVideoHeight = options.quality ? parseInt(options.quality, 10) : null;
     global.optRenderUserQuizAnswer = options.userquizanswer;
     renderdir(path, targetdir);
   });

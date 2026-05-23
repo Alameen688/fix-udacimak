@@ -2,6 +2,7 @@ import _cliProgress from 'cli-progress';
 import fs from 'fs-extra';
 import ora from 'ora';
 import path from 'path';
+import { spawn } from 'child_process';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 import {
@@ -140,6 +141,34 @@ export default async function downloadVideo(video, outputPath, prefix, title) {
 
   await fs.ensureDir(outputPath);
 
+  // ── Path A0: HLS via yt-dlp (opt-in, when user asks for >720p) ───────────
+  // The 720p mp4 endpoint Udacity exposes via GraphQL is capped at 720p, but
+  // the HLS playlist (`uri_hls`) carries variants up to 1080p. Use it only
+  // when the user explicitly opts in via `--quality <height>`.
+  const maxHeight = global.maxVideoHeight;
+  if (maxHeight && maxHeight > 720 && video.transcodings && video.transcodings.uri_hls) {
+    const spinner = ora(`Downloading video (HLS, up to ${maxHeight}p, topher_id=${video.topher_id || 'n/a'})`).start();
+    try {
+      // eslint-disable-next-line no-use-before-define
+      const ok = await downloadHlsViaYtDlp(video.transcodings.uri_hls, savePath, maxHeight);
+      if (ok) {
+        spinner.succeed(`Downloaded ${filename} (HLS ≤${maxHeight}p)`);
+
+        let subtitles = [];
+        if (Array.isArray(video.subtitles) && video.subtitles.length) {
+          const results = await Promise.all(
+            video.subtitles.map(s => downloadOneSubtitle(s, filenameBase, outputPath)),
+          );
+          subtitles = results.filter(Boolean);
+        }
+        return { src: filename, subtitles };
+      }
+      spinner.fail('HLS download failed; falling back to 720p mp4');
+    } catch (error) {
+      spinner.fail(`HLS download error: ${error.message || error}; falling back to 720p mp4`);
+    }
+  }
+
   // ── Path A: direct CDN MP4 ────────────────────────────────────────────────
   const best = pickBestMp4(video);
   if (best) {
@@ -174,4 +203,46 @@ export default async function downloadVideo(video, outputPath, prefix, title) {
 
   logger.warn(`Video has neither transcodings nor youtube_id; skipping (title=${title})`);
   return null;
+}
+
+
+/**
+ * Download an HLS playlist (m3u8) to a single mp4 via yt-dlp, capped at
+ * `maxHeight` pixels tall. Returns false if yt-dlp is missing or the download
+ * fails so the caller can fall back to the progressive mp4 path.
+ * @param {string} m3u8Url HLS playlist URL
+ * @param {string} savePath final mp4 path to write
+ * @param {number} maxHeight maximum video height (e.g. 1080)
+ * @returns {Promise<boolean>}
+ */
+function downloadHlsViaYtDlp(m3u8Url, savePath, maxHeight) {
+  return new Promise((resolve) => {
+    const args = [
+      '-f', `b[height<=${maxHeight}]/b`,
+      '--merge-output-format', 'mp4',
+      '--no-part',
+      '--no-continue',
+      '-o', savePath,
+      m3u8Url,
+    ];
+    let proc;
+    try {
+      proc = spawn('yt-dlp', args);
+    } catch (e) {
+      resolve(false);
+      return;
+    }
+    let stderr = '';
+    proc.stderr.on('data', (d) => { if (global.ytVerbose) process.stderr.write(d); stderr += d.toString(); });
+    proc.stdout.on('data', (d) => { if (global.ytVerbose) process.stdout.write(d); });
+    proc.on('error', () => resolve(false));
+    proc.on('close', (code) => {
+      if (code === 0 && fs.existsSync(savePath)) {
+        resolve(true);
+      } else {
+        if (stderr.trim() && global.ytVerbose) logger.warn(stderr.trim());
+        resolve(false);
+      }
+    });
+  });
 }
